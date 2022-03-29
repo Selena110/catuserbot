@@ -58,12 +58,19 @@ async def fetch_info(replied_user, event):
     last_name = last_name.replace("\u2060", "") if last_name else (" ")
     username = "@{}".format(username) if username else ("This User has no Username")
     user_bio = "This User has no About" if not user_bio else user_bio
-    caption = "<b><i>- 𝚂𝚖𝚒𝚕𝚎, 𝙽𝚘𝚋𝚘𝚍𝚢 𝚌𝚊𝚛𝚎𝚜 𝚑𝚘𝚠 𝚢𝚘𝚞 𝚏𝚎𝚎𝚕 ♪ ..</i></b>\n"
-    caption += f"<b>• 𝗡𝗮𝗺𝗲 𖦹</b> {first_name} {last_name}\n"
-    caption += f"<b>• 𝗨𝘀𝗲𝗿 𖦹</b> {username}\n"
-    caption += f"<b>• 𝗜𝗱 𖦹</b> <code>{user_id}</code>\n"
-    caption += f"<b>• 𝗕𝗶𝗼 𖦹</b> {user_bio}\n"
-    caption += f"<b> ➖\n"
+    caption = "<b><i>USER INFO from Durov's Database :</i></b>\n\n"
+    caption += f"<b>👤 First Name:</b> {first_name} {last_name}\n"
+    caption += f"<b>🤵 Username:</b> {username}\n"
+    caption += f"<b>🔖 ID:</b> <code>{user_id}</code>\n"
+    caption += f"<b>🌏 Data Centre ID:</b> {dc_id}\n"
+    caption += f"<b>🖼 Number of Profile Pics:</b> {replied_user_profile_photos_count}\n"
+    caption += f"<b>🤖 Is Bot:</b> {is_bot}\n"
+    caption += f"<b>🔏 Is Restricted:</b> {restricted}\n"
+    caption += f"<b>🌐 Is Verified by Telegram:</b> {verified}\n\n"
+    caption += f"<b>✍️ Bio:</b> \n<code>{user_bio}</code>\n\n"
+    caption += f"<b>👥 Common Chats with this user:</b> {common_chat}\n"
+    caption += "<b>🔗 Permanent Link To Profile:</b> "
+    caption += f'<a href="tg://user?id={user_id}">{first_name}</a>'
     return photo, caption
 
 
@@ -155,7 +162,7 @@ async def who(event):
     replied_user, reason = await get_user_from_event(event)
     if not replied_user:
         return
-    cat = await edit_or_reply(event, "**- ابشر ياروحي انت لحظة بس ..")
+    cat = await edit_or_reply(event, "`Fetching userinfo wait....`")
     replied_user = await event.client(GetFullUserRequest(replied_user.id))
     try:
         photo, caption = await fetch_info(replied_user, event)
