@@ -22,12 +22,12 @@ plugin_category = "utils"
 
 
 @catub.cat_cmd(
-    pattern="ss ([\s\S]*)",
+    pattern="(ss|gis) ([\s\S]*)",
     command=("ss", plugin_category),
     info={
         "header": "To Take a screenshot of a website.",
         "usage": "{tr}ss <link>",
-        "examples": "{tr}ss https://github.com/sandy1709/catuserbot",
+        "examples": "{tr}ss https://github.com/TgCatUB/catuserbot",
     },
 )
 async def _(event):
@@ -49,14 +49,18 @@ async def _(event):
         chrome_options.binary_location = Config.CHROME_BIN
         await event.edit("`Starting Google Chrome BIN`")
         driver = webdriver.Chrome(chrome_options=chrome_options)
-        input_str = event.pattern_match.group(1)
+        cmd = event.pattern_match.group(1)
+        input_str = event.pattern_match.group(2)
         inputstr = input_str
-        caturl = url(inputstr)
-        if not caturl:
-            inputstr = "http://" + input_str
+        if cmd == "ss":
             caturl = url(inputstr)
-        if not caturl:
-            return await catevent.edit("`The given input is not supported url`")
+            if not caturl:
+                inputstr = f"http://{input_str}"
+                caturl = url(inputstr)
+            if not caturl:
+                return await catevent.edit("`The given input is not supported url`")
+        if cmd == "gis":
+            inputstr = f"https://www.google.com/search?q={input_str}"
         driver.get(inputstr)
         await catevent.edit("`Calculating Page Dimensions`")
         height = driver.execute_script(
@@ -78,7 +82,7 @@ async def _(event):
         hmm = f"**url : **{input_str} \n**Time :** `{ms} seconds`"
         await catevent.delete()
         with io.BytesIO(im_png) as out_file:
-            out_file.name = input_str + ".PNG"
+            out_file.name = f"{input_str}.PNG"
             await event.client.send_file(
                 event.chat_id,
                 out_file,
@@ -99,7 +103,7 @@ async def _(event):
         "header": "To Take a screenshot of a website.",
         "description": "For functioning of this command you need to set SCREEN_SHOT_LAYER_ACCESS_KEY var",
         "usage": "{tr}scapture <link>",
-        "examples": "{tr}scapture https://github.com/sandy1709/catuserbot",
+        "examples": "{tr}scapture https://github.com/TgCatUB/catuserbot",
     },
 )
 async def _(event):
@@ -117,7 +121,7 @@ async def _(event):
     inputstr = input_str
     caturl = url(inputstr)
     if not caturl:
-        inputstr = "http://" + input_str
+        inputstr = f"http://{input_str}"
         caturl = url(inputstr)
     if not caturl:
         return await catevent.edit("`The given input is not supported url`")

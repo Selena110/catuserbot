@@ -226,17 +226,13 @@ async def video_catfile(event):  # sourcery no-metrics
             return await edit_delete(
                 catevent, "`No thumb found to make it video note`", 5
             )
-    if (
-        mediatype
-        in [
-            "Voice",
-            "Audio",
-            "Gif",
-            "Video",
-            "Sticker",
-        ]
-        and not catfile.endswith((".webp"))
-    ):
+    if mediatype in [
+        "Voice",
+        "Audio",
+        "Gif",
+        "Video",
+        "Sticker",
+    ] and not catfile.endswith((".webp")):
         if os.path.exists(PATH):
             c_time = time.time()
             attributes, mime_type = get_attributes(PATH)
@@ -485,11 +481,7 @@ async def on_file_to_photo(event):
 )
 async def _(event):  # sourcery no-metrics
     "Converts Given animated sticker to gif"
-    input_str = event.pattern_match.group(1)
-    if not input_str:
-        quality = None
-        fps = None
-    else:
+    if input_str := event.pattern_match.group(1):
         loc = input_str.split(";")
         if len(loc) > 2:
             return await edit_delete(
@@ -525,11 +517,15 @@ async def _(event):  # sourcery no-metrics
                 quality = loc[0].strip()
             else:
                 return await edit_delete(event, "Use quality of range 0 to 721")
+    else:
+        quality = None
+        fps = None
     catreply = await event.get_reply_message()
     cat_event = base64.b64decode("QUFBQUFGRV9vWjVYVE5fUnVaaEtOdw==")
-    if not catreply or not catreply.media or not catreply.media.document:
-        return await edit_or_reply(event, "`Stupid!, This is not animated sticker.`")
-    if catreply.media.document.mime_type != "application/x-tgsticker":
+    if (
+        media_type(catreply) != "Sticker"
+        or catreply.media.document.mime_type == "image/webp"
+    ):
         return await edit_or_reply(event, "`Stupid!, This is not animated sticker.`")
     catevent = await edit_or_reply(
         event,
@@ -543,7 +539,10 @@ async def _(event):  # sourcery no-metrics
         pass
     reply_to_id = await reply_id(event)
     catfile = await event.client.download_media(catreply)
-    catgif = await make_gif(event, catfile, quality, fps)
+    if catreply.media.document.mime_type == "video/webm":
+        catgif = await vid_to_gif(catfile, "./temp/animation.gif")
+    else:
+        catgif = await make_gif(event, catfile, quality, fps)
     sandy = await event.client.send_file(
         event.chat_id,
         catgif,
@@ -604,10 +603,11 @@ async def _(event):
         voice_note = False
         supports_streaming = False
         if input_str == "voice":
-            new_required_file_caption = "voice_" + str(round(time.time())) + ".opus"
+            new_required_file_caption = f"voice_{str(round(time.time()))}.opus"
             new_required_file_name = (
-                Config.TMP_DOWNLOAD_DIRECTORY + "/" + new_required_file_caption
+                f"{Config.TMP_DOWNLOAD_DIRECTORY}/{new_required_file_caption}"
             )
+
             command_to_run = [
                 "ffmpeg",
                 "-i",
@@ -625,10 +625,11 @@ async def _(event):
             voice_note = True
             supports_streaming = True
         elif input_str == "mp3":
-            new_required_file_caption = "mp3_" + str(round(time.time())) + ".mp3"
+            new_required_file_caption = f"mp3_{str(round(time.time()))}.mp3"
             new_required_file_name = (
-                Config.TMP_DOWNLOAD_DIRECTORY + "/" + new_required_file_caption
+                f"{Config.TMP_DOWNLOAD_DIRECTORY}/{new_required_file_caption}"
             )
+
             command_to_run = [
                 "ffmpeg",
                 "-i",
@@ -702,7 +703,7 @@ async def pic_gifcmd(event):  # sourcery no-metrics
         )
     args = event.pattern_match.group(1)
     args = "i" if not args else args.replace("-", "")
-    catevent = await edit_or_reply(event, "__🎞 Making Gif from the relied media...__")
+    catevent = await edit_or_reply(event, "__🎞 Making Gif from the replied media...__")
     imag = await _cattools.media_to_pic(event, reply, noedits=True)
     if imag[1] is None:
         return await edit_delete(

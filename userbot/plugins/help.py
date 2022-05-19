@@ -8,6 +8,7 @@ from ..core.managers import edit_delete, edit_or_reply
 from ..helpers.utils import reply_id
 
 cmdprefix = Config.COMMAND_HAND_LER
+BADCAT = Config.BADCAT
 
 plugin_category = "tools"
 
@@ -19,6 +20,7 @@ hemojis = {
     "tools": "🧰",
     "utils": "🗂",
     "extra": "➕",
+    "useless": "⚰️",
 }
 
 
@@ -100,6 +102,8 @@ async def grpinfo():
     outstr = "**Plugins in Catuserbot are:**\n\n"
     outstr += f"**👩‍💻 Usage : ** `{cmdprefix}help <plugin name>`\n\n"
     category = ["admin", "bot", "fun", "misc", "tools", "utils", "extra"]
+    if BADCAT:
+        category.append("useless")
     for cat in category:
         plugins = GRP_INFO[cat]
         outstr += f"**{hemojis[cat]} {cat.title()} **({len(plugins)})\n"
@@ -112,6 +116,8 @@ async def grpinfo():
 async def cmdlist():
     outstr = "**Total list of Commands in your Catuserbot are :**\n\n"
     category = ["admin", "bot", "fun", "misc", "tools", "utils", "extra"]
+    if BADCAT:
+        category.append("useless")
     for cat in category:
         plugins = GRP_INFO[cat]
         outstr += f"**{hemojis[cat]} {cat.title()} ** - {len(plugins)}\n\n"
@@ -181,10 +187,7 @@ async def _(event):
 )
 async def _(event):
     "To get list of commands."
-    input_str = event.pattern_match.group(1)
-    if not input_str:
-        outstr = await cmdlist()
-    else:
+    if input_str := event.pattern_match.group(1):
         try:
             cmds = PLG_INFO[input_str]
         except KeyError:
@@ -195,6 +198,8 @@ async def _(event):
         for cmd in cmds:
             outstr += f"  - `{cmdprefix}{cmd}`\n"
         outstr += f"**👩‍💻 Usage : ** `{cmdprefix}help -c <command name>`"
+    else:
+        outstr = await cmdlist()
     await edit_or_reply(
         event, outstr, aslink=True, linktext="Total Commands of Catuserbot are :"
     )
@@ -211,8 +216,7 @@ async def _(event):
 async def _(event):
     "To search commands."
     cmd = event.pattern_match.group(1)
-    found = [i for i in sorted(list(CMD_INFO)) if cmd in i]
-    if found:
+    if found := [i for i in sorted(list(CMD_INFO)) if cmd in i]:
         out_str = "".join(f"`{i}`    " for i in found)
         out = f"**I found {len(found)} command(s) for: **`{cmd}`\n\n{out_str}"
         out += f"\n\n__For more info check {cmdprefix}help -c <command>__"
